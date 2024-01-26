@@ -29,28 +29,15 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: 'Today',
+                    title: 'Plan',
+                    headerShown: false,
                     tabBarIcon: ({color}) => <TabBarIcon name="code" color={color}/>,
-                    headerRight: () => (
-                        <Link href="/modal" asChild>
-                            <Pressable>
-                                {({pressed}) => (
-                                    <FontAwesome
-                                        name="info-circle"
-                                        size={25}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                        style={{marginRight: 15, opacity: pressed ? 0.5 : 1}}
-                                    />
-                                )}
-                            </Pressable>
-                        </Link>
-                    ),
                 }}
             />
             <Tabs.Screen
-                name="tracking"
+                name="progress"
                 options={{
-                    title: 'Tracking',
+                    title: 'Progress',
                     tabBarIcon: ({color}) => <TabBarIcon name="code" color={color}/>,
                 }}
             />
