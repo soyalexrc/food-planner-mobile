@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useRouter} from "expo-router";
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -9,6 +9,8 @@ import {updateFoodType} from "@/store/slices/search/searchSlice";
 import {selectStatsByDay} from "@/store/slices/stats/statsByDaySlice";
 import {Meal} from "@/interfaces/meal";
 import Placeholder from "@/components/meals/Placeholder";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
 
 const data = [
     { value: 30, color: 'blue' },
@@ -21,6 +23,27 @@ export default function PlanScreen() {
     const statsByDay = useAppSelector(selectStatsByDay);
     const router = useRouter()
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
+
+    const handleConfirm = (date: Date) => {
+        const today = new Date().getTime();
+        if (date.getTime() <= today) {
+            setCurrentDate(date);
+        } else {
+            // TODO handle error
+            console.error('Date must be today or before');
+        }
+        hideDatePicker();
+    };
 
     const handlePreviousDay = () => {
         setCurrentDate(new Date(currentDate.getTime() - 86400000));
@@ -30,7 +53,7 @@ export default function PlanScreen() {
         setCurrentDate(new Date(currentDate.getTime() + 86400000));
     };
 
-    const formattedDate = currentDate.toLocaleDateString('en-US', {weekday: 'short', day: 'numeric'});
+    const formattedDate = currentDate.toLocaleDateString('en-US', {weekday: 'short', day: '2-digit'});
 
     function handleSelectFood(foodType: string) {
         dispatch(updateFoodType(foodType));
@@ -43,10 +66,10 @@ export default function PlanScreen() {
                 <TouchableOpacity onPress={handlePreviousDay}>
                     <MaterialIcons name="chevron-left" size={40} color="black"/>
                 </TouchableOpacity>
-                <View style={{flexDirection: 'row', gap: 5}}>
+                <Pressable onPress={showDatePicker} style={{flexDirection: 'row', gap: 5}}>
                     <MaterialIcons name="calendar-month" size={24} color="black"/>
                     <Text style={{fontSize: 20}}>{formattedDate}</Text>
-                </View>
+                </Pressable>
                 <TouchableOpacity onPress={handleNextDay}
                                   disabled={currentDate.toDateString() === new Date().toDateString()}>
                     <MaterialIcons name="chevron-right" size={40} color="black"/>
@@ -108,6 +131,12 @@ export default function PlanScreen() {
                     ))
                 }
             </ScrollView>
+            <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+            />
         </SafeAreaView>
     );
 }
@@ -131,7 +160,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 20,
+        gap: 10,
     },
     stats: {
         flexDirection: 'row',
