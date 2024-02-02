@@ -3,13 +3,24 @@ import {RootState} from "@/store";
 import {StatsByDay} from '@/interfaces/stats';
 
 const initialState: StatsByDay = {
-    date: new Date(),
-    breakfast: {},
-    dateFormatted: '',
-    Dinner: {},
-    lunch: {},
-    afternoonSnack: {},
-    morningSnack: {},
+    date: new Date().toDateString(),
+    meals: {
+        breakfast: {
+            titleApp: 'Breakfast'
+        },
+        morningSnack: {
+            titleApp: 'Morning Snack'
+        },
+        lunch: {
+            titleApp: 'Lunch'
+        },
+        afternoonSnack: {
+            titleApp: 'Afternoon Snack'
+        },
+        Dinner: {
+            titleApp: 'Dinner'
+        },
+    },
     MaxCalories: 0,
     totalCalories: 0,
     totalCarbs: 0,

@@ -5,8 +5,12 @@ import {getMeals, urlFor} from "@/utils/data/sanity";
 import {FlashList} from "@shopify/flash-list";
 import {useEffect, useState} from "react";
 import {useNavigation} from "expo-router";
+import {useAppSelector} from "@/store/hooks";
+import {selectSearch} from "@/store/slices/search/searchSlice";
 
 export default function ModalScreen() {
+    const searchData = useAppSelector(selectSearch);
+
     const [meals, setMeals] = useState([]);
     const [text, onChangeText] = useState('');
 
@@ -14,9 +18,9 @@ export default function ModalScreen() {
 
     useEffect(() => {
         navigation.setOptions({
-            title: 'Select a breakfast'
+            title: `Select a ${searchData.foodType}`
         })
-        getMeals().then(res => setMeals(res));
+        getMeals(searchData.foodType).then(res => setMeals(res));
     }, [])
 
     return (
@@ -27,6 +31,13 @@ export default function ModalScreen() {
                 placeholder='Search meal'
                 value={text}
             />
+            {
+                // TODO Match the loading state too
+                meals.length < 1 &&
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text>No {searchData.foodType} meals found...</Text>
+                </View>
+            }
             <FlashList
                 data={meals}
                 contentContainerStyle={{ paddingVertical: 20 }}

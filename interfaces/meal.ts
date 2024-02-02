@@ -1,4 +1,6 @@
+
 export interface Meal {
+    titleApp: string;
     title: string;
     description: string;
     category: MealCategory;

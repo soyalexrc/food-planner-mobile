@@ -1,5 +1,6 @@
 import {createClient} from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
+import {FOOD_TYPES} from "@/constants/enums";
 
 
 export const client = createClient({
@@ -21,6 +22,6 @@ export function urlFor(source: any) {
 }
 
 // uses GROQ to query content: https://www.sanity.io/docs/groq
-export async function getMeals() {
-    return await client.fetch(' *[_type == "meal"]')
+export async function getMeals(foodType: FOOD_TYPES) {
+    return await client.fetch(` *[_type == "meal" && category == $foodType]`, { foodType })
 }

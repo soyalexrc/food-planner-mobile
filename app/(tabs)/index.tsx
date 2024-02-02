@@ -1,10 +1,14 @@
-import {Button, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useRouter} from "expo-router";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useState} from "react";
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-
+import {useAppDispatch, useAppSelector} from "@/store/hooks";
+import {updateFoodType} from "@/store/slices/search/searchSlice";
+import {selectStatsByDay} from "@/store/slices/stats/statsByDaySlice";
+import {Meal} from "@/interfaces/meal";
+import Placeholder from "@/components/meals/Placeholder";
 
 const data = [
     { value: 30, color: 'blue' },
@@ -13,6 +17,8 @@ const data = [
 ];
 
 export default function PlanScreen() {
+    const dispatch = useAppDispatch();
+    const statsByDay = useAppSelector(selectStatsByDay);
     const router = useRouter()
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -26,12 +32,11 @@ export default function PlanScreen() {
 
     const formattedDate = currentDate.toLocaleDateString('en-US', {weekday: 'short', day: 'numeric'});
 
+    function handleSelectFood(foodType: string) {
+        dispatch(updateFoodType(foodType));
+        router.push('/modal');
+    }
 
-    // chart data
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    const radius = 50; // Adjust radius for a smaller chart
-    const centerX = radius;
-    const centerY = radius;
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -53,9 +58,9 @@ export default function PlanScreen() {
                         duration={2000}
                         size={100}
                         width={5}
-                        fill={20}
+                        fill={40.7}
                         rotation={0}
-                        tintColor="lightgreen"
+                        tintColor="green"
                         onAnimationComplete={() => console.log('onAnimationComplete')}
                         backgroundColor="lightgray"
                     >
@@ -85,24 +90,23 @@ export default function PlanScreen() {
                 </View>
             </View>
             <ScrollView style={{ paddingHorizontal: 10 }}>
-                <Button title='Select breakfast' onPress={() => router.push('/modal')}/>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Breakfast</Text>
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <TouchableOpacity>
-                            <MaterialIcons name={true ? 'add' : 'swap-horiz'} size={30} color="black" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <View style={{ height: 100 }} />
-                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Morning snack</Text>
-                <View style={{ height: 100 }} />
-                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Lunch</Text>
-                <View style={{ height: 100 }} />
-                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Afternoon snack</Text>
-                <View style={{ height: 100 }} />
-                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Dinner</Text>
-                <View style={{ height: 100 }} />
+                {
+                    Object.entries(statsByDay.meals).map(([_, meal]: [mealTitle: string, meal: Meal]) => (
+                        <View key={meal.titleApp}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{meal.titleApp}</Text>
+                                <View style={{ flexDirection: 'row', gap: 10 }}>
+                                    <TouchableOpacity onPress={() => handleSelectFood(meal.titleApp)}>
+                                        <MaterialIcons name={true ? 'add' : 'swap-horiz'} size={30} color="black" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            {
+                                !meal.title ? <Placeholder cb={() => handleSelectFood(meal.titleApp)} text={meal.titleApp}/> :  <View style={{ height: 100 }} />
+                            }
+                        </View>
+                    ))
+                }
             </ScrollView>
         </SafeAreaView>
     );
@@ -133,6 +137,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 10,
         paddingHorizontal: 10,
+        paddingBottom: 10,
         alignItems: 'center',
     }
 });

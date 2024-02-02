@@ -1,10 +1,12 @@
 import {configureStore} from "@reduxjs/toolkit";
 
 import statsByDayReducer from './slices/stats/statsByDaySlice';
+import searchReducer from './slices/search/searchSlice';
 
 export const store = configureStore({
     reducer: {
-        statsByDayReducer
+        statsByDayReducer,
+        searchReducer
     }
 })
 // Infer the `RootState` and `AppDispatch` types from the store itself
