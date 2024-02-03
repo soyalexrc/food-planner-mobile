@@ -1,4 +1,4 @@
-import {createSlice} from "@reduxjs/toolkit";
+import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "@/store";
 import {StatsByDay} from '@/interfaces/stats';
 
@@ -32,11 +32,15 @@ const initialState: StatsByDay = {
 export const statsByDaySlice = createSlice({
     name: 'statsByDay',
     initialState,
-    reducers: {},
+    reducers: {
+        changeDate: (state, action: PayloadAction<string>) => {
+            state.date = action.payload
+        },
+    },
 });
 
 export const {
-
+    changeDate
 } = statsByDaySlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type

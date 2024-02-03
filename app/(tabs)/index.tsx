@@ -2,27 +2,21 @@ import {Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'r
 import {MaterialIcons} from '@expo/vector-icons';
 import {useRouter} from "expo-router";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import {useAppDispatch, useAppSelector} from "@/store/hooks";
 import {updateFoodType} from "@/store/slices/search/searchSlice";
-import {selectStatsByDay} from "@/store/slices/stats/statsByDaySlice";
+import {changeDate, selectStatsByDay} from "@/store/slices/stats/statsByDaySlice";
 import {Meal} from "@/interfaces/meal";
 import Placeholder from "@/components/meals/Placeholder";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-
-const data = [
-    { value: 30, color: 'blue' },
-    { value: 50, color: 'green' },
-    { value: 20, color: 'orange' },
-];
+const CALORIES_LIMIT = 2000;
 
 export default function PlanScreen() {
     const dispatch = useAppDispatch();
     const statsByDay = useAppSelector(selectStatsByDay);
     const router = useRouter()
-    const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
 
@@ -37,7 +31,8 @@ export default function PlanScreen() {
     const handleConfirm = (date: Date) => {
         const today = new Date().getTime();
         if (date.getTime() <= today) {
-            setCurrentDate(date);
+            dispatch(changeDate(date.toDateString()));
+            // setCurrentDate(date);
         } else {
             // TODO handle error
             console.error('Date must be today or before');
@@ -46,19 +41,33 @@ export default function PlanScreen() {
     };
 
     const handlePreviousDay = () => {
-        setCurrentDate(new Date(currentDate.getTime() - 86400000));
+        const date = new Date(statsByDay.date)
+        dispatch(changeDate(new Date(date.getTime() - 86400000).toDateString()));
     };
 
     const handleNextDay = () => {
-        setCurrentDate(new Date(currentDate.getTime() + 86400000));
+        const date = new Date(statsByDay.date)
+        dispatch(changeDate(new Date(date.getTime() + 86400000).toDateString()));
     };
 
-    const formattedDate = currentDate.toLocaleDateString('en-US', {weekday: 'short', day: '2-digit'});
+    const formattedDate = () => {
+        const date = new Date(statsByDay.date);
+        return date.toLocaleDateString('en-US', {weekday: 'short', day: '2-digit'})
+    };
 
     function handleSelectFood(foodType: string) {
         dispatch(updateFoodType(foodType));
         router.push('/modal');
     }
+
+    function calculateCaloriesForChart(): number {
+        return (statsByDay.totalCalories / CALORIES_LIMIT) * 100
+    }
+
+    useEffect(() => {
+        console.log('date changed!')
+    //     TODO actualizar el statbByDay consultando en sqlite el registro que debe ser identico al "statsByDay" de el dia consultado...
+    }, [statsByDay.date])
 
     return (
         <SafeAreaView style={styles.container}>
@@ -68,10 +77,10 @@ export default function PlanScreen() {
                 </TouchableOpacity>
                 <Pressable onPress={showDatePicker} style={{flexDirection: 'row', gap: 5}}>
                     <MaterialIcons name="calendar-month" size={24} color="black"/>
-                    <Text style={{fontSize: 20}}>{formattedDate}</Text>
+                    <Text style={{fontSize: 20}}>{formattedDate()}</Text>
                 </Pressable>
                 <TouchableOpacity onPress={handleNextDay}
-                                  disabled={currentDate.toDateString() === new Date().toDateString()}>
+                                  disabled={statsByDay.date === new Date().toDateString()}>
                     <MaterialIcons name="chevron-right" size={40} color="black"/>
                 </TouchableOpacity>
             </View>
@@ -81,7 +90,7 @@ export default function PlanScreen() {
                         duration={2000}
                         size={100}
                         width={5}
-                        fill={40.7}
+                        fill={calculateCaloriesForChart()}
                         rotation={0}
                         tintColor="green"
                         onAnimationComplete={() => console.log('onAnimationComplete')}
@@ -90,7 +99,7 @@ export default function PlanScreen() {
                         {
                             (fill) => (
                                 <View style={{ alignItems: 'center', marginTop: 10 }}>
-                                    <Text>150 / 1500</Text>
+                                    <Text>{statsByDay.totalCalories} / {CALORIES_LIMIT}</Text>
                                     <Text>Kcal</Text>
                                 </View>
                             )
@@ -100,15 +109,15 @@ export default function PlanScreen() {
                 <View style={{ flex: 0.7, gap: 3 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: 'lightgray', borderStyle: 'solid', paddingBottom: 3 }}>
                         <Text>Proteins</Text>
-                        <Text>0 gr</Text>
+                        <Text>{statsByDay.totalProteins} gr</Text>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: 'lightgray', borderStyle: 'solid', paddingBottom: 3 }}>
                         <Text>Carbs</Text>
-                        <Text>0 gr</Text>
+                        <Text>{statsByDay.totalCarbs} gr</Text>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: 'lightgray', borderStyle: 'solid', paddingBottom: 3 }}>
                         <Text>Fat</Text>
-                        <Text>0 gr</Text>
+                        <Text>{statsByDay.totalFat} gr</Text>
                     </View>
                 </View>
             </View>
